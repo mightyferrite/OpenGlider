@@ -6,8 +6,10 @@
 const float version = 0.01;
 const boolean ON = true;
 const boolean OFF = false;
+int def_buzz = 200;           //default buzz time for status updates..
 
-int numberOfDives = 1;
+int numberOfDives = 1;        //How many times it will dive on it's own repeatedly
+
 unsigned long pump_up_time = 10000;
 unsigned long pump_dn_time = 10000;
 unsigned long on_surface_time = 10000;
@@ -18,7 +20,14 @@ unsigned long pump_diving_time = 5000;
 unsigned long pump_surfacing_time = 5000;
 unsigned long power_on_time = 3000;
 unsigned long valve_on_time = 2000;
+unsigned long valve_on_buzzer_time = 500;
+unsigned long pump_diving_buzzer_time = 1000;
+unsigned long pump_surfacing_buzzer_time = 1000;
 
+unsigned long buzzer_time_high = 300;
+unsigned long buzzer_time_low = 300;
+
+int buzzer_repeat_count = 2;
 
 enum GliderState {
   POWER_ON,
@@ -48,15 +57,35 @@ enum ValveState {
   VALVE_CLOSED
 };
 
+
+enum BuzzerState {
+    BUZZER_HIGH,
+    BUZZER_LOW,
+    BUZZER_OFF
+  };
+  
+struct Buzzer {
+  unsigned long buzzerTimer = 0;
+  int buzzerLowTime = 0;
+  int buzzerHighTime = 0;
+  int buzzerCounter = 0;
+  int buzzerCount = 1;
+  BuzzerState buzzerState = BUZZER_OFF;
+};
+
 struct GliderData {
   GliderState state = POWER_ON;
   unsigned long stateTimer = 0;
   unsigned long pumpTimer = 0;
+  unsigned long pumpBuzzerTimer = 0;
+  unsigned long valveTimer = 0;
+  unsigned long valveBuzzerTimer = 0;
+  Buzzer buzzer;
   int diveCounter = 0;
   PumpState pumpState = PUMP_OFF;
-
   ValveState valveState = VALVE_CLOSED;   //initially valve will be assumed closed, though we need to factor in feedback for this
-  unsigned long valveTimer = 0;
+
+  
 };
 
 GliderData glider;
@@ -74,8 +103,9 @@ void setup() {
   //init relays
   //init leak detect
   //init pressure/humidity/temperature sensor
-  delay(500);
+  //delay(500);
   digitalWrite(LED_BUILTIN, LOW);
+  
 }
 
 void loop() {
@@ -83,5 +113,5 @@ void loop() {
   loopGliderState();
   loopPumpState();
   loopValveState();
-
+  loopBuzzerState();
 }

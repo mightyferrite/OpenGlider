@@ -38,3 +38,12 @@ void valveOpenDone() {
 void valveCloseDone() {
   Serial.println("valveCloseDone()");
 }
+
+void turnBuzzerOff() {
+  digitalWrite(LED_BUILTIN, HIGH);
+  //Serial.println("buzzer off");
+}
+void turnBuzzerOn() {
+   digitalWrite(LED_BUILTIN, LOW);
+   //Serial.println("buzzer on");
+}
