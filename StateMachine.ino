@@ -9,7 +9,6 @@ void changeGliderState(GliderState newGliderState) {
     }
     else if (glider.state == POWER_ON) {
       //initial turn on!
-      Serial.println("glider.state switching to POWER_ON");
       glider.stateTimer = currentMillis;
       setBuzzerPeriod(def_buzz, def_buzz, 2);
     }
@@ -43,7 +42,12 @@ void loopGliderState() {
   if (glider.state == POWER_ON) {
     //for now we will assume that power on only happens on the surface.. later check to see if we are actually on the surface
     if (currentMillis - glider.stateTimer > power_on_time) {
-      changeGliderState(ON_SURFACE);
+      if(AUTOSTART){
+        changeGliderState(ON_SURFACE);      
+      }
+      else {
+        changeGliderState(ON_SURFACE_WAITING_FOR_COMMAND);
+      }
     }
   }
   else if (glider.state == ON_SURFACE) {
@@ -80,6 +84,8 @@ void changePumpState(PumpState newPumpState) {
   }
   else if (newPumpState == PUMP_OFF_INIT) {
     Serial.println("glider.pumpState switching to PUMP_OFF_INIT");
+    glider.pumpTimer = currentMillis;
+    changeValveState(VALVE_CLOSE_INIT);
     pumpOff();
 
   }
@@ -91,6 +97,7 @@ void changePumpState(PumpState newPumpState) {
   }
   else if (newPumpState == PUMP_ON_IN) {
     Serial.println("glider.pumpState switching to PUMP_ON_IN");
+    pumpIn();
   }
   else if (newPumpState == PUMP_ON_OUT_INIT) {
     Serial.println("glider.pumpState switching to PUMP_ON_OUT_INIT");
@@ -101,12 +108,9 @@ void changePumpState(PumpState newPumpState) {
   }
   else if (newPumpState == PUMP_ON_OUT) {
     Serial.println("glider.pumpState switching to PUMP_ON_OUT");
+    pumpOut();
   }
-  else if (newPumpState == PUMP_OFF_INIT) {
-    Serial.println("glider.pumpState switching to PUMP_OFF_INIT");
-    glider.pumpTimer = currentMillis;
-    pumpOffInit();
-  }
+
   glider.pumpState = newPumpState;
 
 }
@@ -118,7 +122,7 @@ void loopPumpState() {
   }
   else if (glider.pumpState == PUMP_OFF_INIT) {
     if (glider.valveState == VALVE_CLOSED) {
-      changePumpState(PUMP_ON_IN);
+      changePumpState(PUMP_OFF);
     }
   }
   else if (glider.pumpState == PUMP_ON_IN_INIT) {
@@ -127,7 +131,7 @@ void loopPumpState() {
     }
   }
   else if (glider.pumpState == PUMP_ON_IN) {
-    if (currentMillis - glider.pumpTimer > pump_diving_time) {
+    if (currentMillis - glider.pumpTimer > pump_diving_time + valve_on_time) {
       changePumpState(PUMP_OFF_INIT);
     }
     else if (currentMillis - glider.pumpBuzzerTimer > pump_diving_buzzer_time) {
@@ -141,7 +145,7 @@ void loopPumpState() {
     }
   }
   else if (glider.pumpState == PUMP_ON_OUT) {
-    if (currentMillis - glider.pumpTimer > pump_surfacing_time) {
+    if (currentMillis - glider.pumpTimer > pump_surfacing_time + valve_on_time) {
       changePumpState(PUMP_OFF_INIT);
     }
     else if (currentMillis - glider.pumpBuzzerTimer > pump_surfacing_buzzer_time) {
@@ -151,6 +155,7 @@ void loopPumpState() {
   }
   else if (glider.pumpState == PUMP_OFF_INIT) {
     changePumpState(PUMP_OFF);
+    
   }
 
 }
@@ -161,10 +166,12 @@ void changeValveState(ValveState newValveState) {
   }
   else if (newValveState == VALVE_OPEN_INIT) {
     glider.valveBuzzerTimer = currentMillis;
+    glider.valveTimer = currentMillis;
     valveOpenInit();
   }
   else if (newValveState == VALVE_CLOSE_INIT) {
     glider.valveBuzzerTimer = currentMillis;
+    glider.valveTimer = currentMillis;
     valveCloseInit();
   }
   else if (newValveState == VALVE_CLOSED) {
