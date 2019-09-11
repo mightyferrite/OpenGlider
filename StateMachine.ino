@@ -1,13 +1,27 @@
 
+void deployGlider(){
+  if(glider.state == ON_SURFACE_WAITING_FOR_COMMAND){
+    changeGliderState(ON_SURFACE);
+  }
+}
+
+void resetGlider(){
+  changeGliderState(ON_SURFACE_WAITING_FOR_COMMAND);
+}
+
 void changeGliderState(GliderState newGliderState) {
-  if (newGliderState == ON_SURFACE) {
+  if (newGliderState == POWER_ON) {
+    
+  } else if (newGliderState == ON_SURFACE) {
     Serial.println("glider.state switching to ON_SURFACE");
+    allData = allData + "\nON_SURFACE" + " \r\n";
+
     if (glider.state == SURFACING) {          //glider is coming up to the surface.. turn pump off..
       //reached the surface from the bottom
       glider.stateTimer = currentMillis;
       glider.diveCounter++;
     }
-    else if (glider.state == POWER_ON) {
+    else if (glider.state == POWER_ON || glider.state == ON_SURFACE_WAITING_FOR_COMMAND) {
       //initial turn on!
       glider.stateTimer = currentMillis;
       setBuzzerPeriod(def_buzz, def_buzz, 2);
@@ -15,20 +29,24 @@ void changeGliderState(GliderState newGliderState) {
   }
   else if (newGliderState == ON_SURFACE_WAITING_FOR_COMMAND) {
     Serial.println("glider.state switching to ON_SURFACE_WAITING_FOR_COMMAND");
+          allData = allData + "ON_SURFACE_WAITING_FOR_COMMAND" + " \r\n";
 
   }
   else if (newGliderState == DIVING) {                      //glider is beginning a dive
     Serial.println("glider.state switching to DIVING");
+    allData = allData + "DIVING" + " \r\n";
     glider.stateTimer = currentMillis;
     changePumpState(PUMP_ON_IN_INIT);                       //pump water in to dive
     setBuzzerPeriod(def_buzz, def_buzz, 3);
   }
   else if (newGliderState == ON_BOTTOM) {
+    allData = allData + "ON_BOTTOM" + " \r\n";
     Serial.println("glider.state switching to ON_BOTTOM");
     glider.stateTimer = currentMillis;
     setBuzzerPeriod(def_buzz, def_buzz, 4);
   }
   else if (newGliderState == SURFACING) {
+    allData = allData + "SURFACING" + " \r\n";
     Serial.println("glider.state switching to SURFACING");
     glider.stateTimer = currentMillis;
     changePumpState(PUMP_ON_OUT_INIT);    //pump water out to surface
@@ -81,9 +99,11 @@ void loopGliderState() {
 void changePumpState(PumpState newPumpState) {
   if (newPumpState == PUMP_OFF) {
     Serial.println("glider.pumpState switching to PUMP_OFF");
+    allData = allData + "PUMP_OFF" + " \r\n";
   }
   else if (newPumpState == PUMP_OFF_INIT) {
     Serial.println("glider.pumpState switching to PUMP_OFF_INIT");
+    allData = allData + "PUMP_OFF_INIT" + " \r\n";
     glider.pumpTimer = currentMillis;
     changeValveState(VALVE_CLOSE_INIT);
     pumpOff();
@@ -91,15 +111,18 @@ void changePumpState(PumpState newPumpState) {
   }
   else if (newPumpState == PUMP_ON_IN_INIT) {
     glider.pumpTimer = currentMillis;
+    allData = allData + "PUMP_ON_IN_INIT" + " \r\n";
     Serial.println("glider.pumpState is in PUMP_ON_IN_INIT and is DIVING (this is good)");
     changeValveState(VALVE_OPEN_INIT);
     pumpInInit();
   }
   else if (newPumpState == PUMP_ON_IN) {
+    allData = allData + "PUMP_ON_IN" + " \r\n";
     Serial.println("glider.pumpState switching to PUMP_ON_IN");
     pumpIn();
   }
   else if (newPumpState == PUMP_ON_OUT_INIT) {
+    allData = allData + "PUMP_ON_OUT_INIT" + " \r\n";
     Serial.println("glider.pumpState switching to PUMP_ON_OUT_INIT");
     glider.pumpTimer = currentMillis;
     changeValveState(VALVE_OPEN_INIT);
@@ -107,6 +130,7 @@ void changePumpState(PumpState newPumpState) {
 
   }
   else if (newPumpState == PUMP_ON_OUT) {
+    allData = allData + "PUMP_ON_OUT" + " \r\n";
     Serial.println("glider.pumpState switching to PUMP_ON_OUT");
     pumpOut();
   }
@@ -162,19 +186,23 @@ void loopPumpState() {
 
 void changeValveState(ValveState newValveState) {
   if (newValveState == VALVE_OPEN) {
+    allData = allData + "VALVE_OPEN\n";
     valveOpenDone();
   }
   else if (newValveState == VALVE_OPEN_INIT) {
+    allData = allData + "VALVE_OPEN_INIT"+ " \r\n";
     glider.valveBuzzerTimer = currentMillis;
     glider.valveTimer = currentMillis;
     valveOpenInit();
   }
   else if (newValveState == VALVE_CLOSE_INIT) {
+    allData = allData + "VALVE_CLOSE_INIT"+ " \r\n";
     glider.valveBuzzerTimer = currentMillis;
     glider.valveTimer = currentMillis;
     valveCloseInit();
   }
   else if (newValveState == VALVE_CLOSED) {
+    allData = allData + "VALVE_CLOSED" + " \r\n";
     valveCloseDone();
   }
   glider.valveState = newValveState;
@@ -235,7 +263,7 @@ void changeBuzzerState(BuzzerState newBuzzerState) {
 
 void loopBuzzerState() {
   if (glider.buzzer.buzzerState == BUZZER_OFF) {
-
+    
   }
   else if (glider.buzzer.buzzerState == BUZZER_HIGH) {
     if (glider.buzzer.buzzerCounter <= buzzer_repeat_count) {
