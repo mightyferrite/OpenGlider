@@ -21,27 +21,30 @@ void loopSensors() {
   if (currentMillis - BMESensorTimer > BMESensortime) {
     getSensorData();
     BMESensorTimer = currentMillis;
-    allData = allData + getBMEData() + " \r\n";
+    //allData = allData + getBMEData() + " \r\n";
   }
 }
 
 void setupBME() {
-
+  int bmeCounter = 0;
   while (!bme.begin()) //todo - make this not a while loop!  :)
   {
-    Serial.println("Could not find BME280 sensor!");
+    logln("Could not find BME280 sensor!");
     delay(4000);
+    if(bmeCounter++ > 10){
+      break;
+    }
   }
   switch (bme.chipModel())
   {
     case BME280::ChipModel_BME280:
-      Serial.println("Found BME280 sensor! Success.");
+      logln("Found BME280 sensor! Success.");
       break;
     case BME280::ChipModel_BMP280:
-      Serial.println("Found BMP280 sensor! No Humidity available.");
+      logln("Found BMP280 sensor! No Humidity available.");
       break;
     default:
-      Serial.println("Found UNKNOWN sensor! Error!");
+      logln("Found UNKNOWN sensor! Error!");
   }
 }
 

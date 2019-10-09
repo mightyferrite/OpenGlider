@@ -2,50 +2,28 @@
 // Open Source Glider
 // John Reine
 // 8/12/19 - started - created states and general workflow
-#undef max
-#undef min
 #include <SPI.h>
-#undef max
-#undef min
 #include <SD.h>
-#undef max
-#undef min
 #include <WiFiNINA.h>
 #undef max
 #undef min
-#include <ArduinoHttpClient.h> 
-#undef max
-#undef min
+#include <ArduinoHttpClient.h>
 #include <avr/pgmspace.h>
-#undef max
-#undef min
-#include "arduino_secrets.h" 
+#include "arduino_secrets.h"
 #include <Ticker.h>
-#undef max
-#undef min
 #include <BME280I2C.h>
-#undef max
-#undef min
 #include <Wire.h>
-#undef max
-#undef min
-
 
 #define DEBUGGING
 #define CALLBACK_FUNCTIONS 1
-#undef max
-#undef min
-//#include <WebSocketServer.h>
-#undef max
-#undef min
-#include <WebSocketsServer.h>
-#undef max
-#undef min
+
 #define LED_BUILTIN 3
 
 boolean AUTOSTART = false;
-boolean WAIT_FOR_SERIAL = true;
+boolean WAIT_FOR_SERIAL = false;
 boolean LOG_TO_FILE = true;
+boolean NO_VALVE = true;
+boolean NO_WEB = false;
 
 const byte pumpPlusRelay = 8;
 const byte pumpMinusRelay = 7;
@@ -53,7 +31,7 @@ const byte pumpPowerRelay = 6;
 const byte valvePlusRelay = 10;
 const byte valveMinusRelay = A1;
 const byte valvePowerRelay = 9;
-const byte buzzerOnPin = 5;          //buzzer connected 
+const byte buzzerOnPin = 5;          //buzzer connected
 
 const boolean relayON = LOW;
 const boolean relayOFF = HIGH;
@@ -62,19 +40,17 @@ const boolean ON = true;
 const boolean OFF = false;
 int def_buzz = 400;           //default buzz time for status updates..
 boolean gotWebInterface = false;
-int numberOfDives = 1;        //How many times it will dive on it's own repeatedly
+int numberOfDives = 3;        //How many times it will dive on it's own repeatedly
 String allData;
 
-unsigned long pump_up_time = 10000;
-unsigned long pump_dn_time = 10000;
-unsigned long on_surface_time = 60000;
-unsigned long on_bottom_time = 60000;
+unsigned long on_surface_time = 30000;
+unsigned long on_bottom_time = 30000;
 unsigned long diving_time = 200000;
 unsigned long surfacing_time = 200000;
 unsigned long pump_surfacing_time = 180000; //3 min SURF
 unsigned long pump_diving_time = 180000;    //3 min DIVE
-unsigned long power_on_time = 60000;     //wait 1 minute before deploying
-unsigned long valve_on_time = 7100;
+unsigned long power_on_time = 180000;     //wait 30 seconds before deploying
+unsigned long valve_on_time = 710;
 unsigned long valve_on_buzzer_time = 500;
 unsigned long pump_diving_buzzer_time = 1000;
 unsigned long pump_surfacing_buzzer_time = 1000;
@@ -105,6 +81,7 @@ enum GliderState {
 };
 
 enum DeployState {
+  DEPLOY_OFF,
   DEPLOYED,
   DEPLOYING,
   RECOVERED,
@@ -130,11 +107,11 @@ enum ValveState {
 
 
 enum BuzzerState {
-    BUZZER_HIGH,
-    BUZZER_LOW,
-    BUZZER_OFF
-  };
-  
+  BUZZER_HIGH,
+  BUZZER_LOW,
+  BUZZER_OFF
+};
+
 struct Buzzer {
   unsigned long buzzerTimer = 0;
   int buzzerFrequency = 2500;
@@ -146,8 +123,8 @@ struct Buzzer {
 };
 
 struct SensorData {
-  BME280I2C bme;       
-  
+  BME280I2C bme;
+
 };
 
 struct GliderData {
@@ -158,6 +135,7 @@ struct GliderData {
   unsigned long valveTimer = 0;
   unsigned long valveBuzzerTimer = 0;
   Buzzer buzzer;
+  DeployState deployState = DEPLOY_OFF;
   int diveCounter = 0;
   PumpState pumpState = PUMP_OFF;
   ValveState valveState = VALVE_CLOSED;   //initially valve will be assumed closed, though we need to factor in feedback for this
@@ -168,41 +146,35 @@ unsigned long currentMillis = millis();
 
 void setup() {
   Serial.begin(115200);
-  
-  
-  if(WAIT_FOR_SERIAL){
+  if (WAIT_FOR_SERIAL) {
     int serialDelayCounter;
     while (!Serial) {
       delay(100);
       serialDelayCounter++;
-      if(serialDelayCounter > 20){
+      if (serialDelayCounter > 20) {
         break;
       }
       // wait for serial port to connect. Needed for native USB port only
     }
   }
-  if(Serial){
-    AUTOSTART = false;
-  }
-  digitalWrite(LED_BUILTIN, HIGH);
+//  if (Serial) {
+//    //AUTOSTART = false;
+//  }
+  //digitalWrite(LED_BUILTIN, HIGH);
   currentMillis = millis();
   glider.stateTimer = currentMillis;
- 
+
   glider.state = POWER_ON;
   glider.valveState = VALVE_CLOSED;
   glider.diveCounter = 0;
-  //init sd card writer
-  //init relays
-  //init leak detect
-  //init pressure/humidity/temperature sensor
-  //delay(500);
   setupSDCard();
   sdCardInfo();
-  //setupSensors();
   setupRelays();
   setupBuzzer();
   setupSensors();
-  setupWebInterface();
+  if (!NO_WEB) {
+    setupWebInterface();
+  }
 }
 
 void loop() {
@@ -212,7 +184,9 @@ void loop() {
   loopValveState();
   loopBuzzerState();
   loopSensors();
-  loopWebInterface();
+  if (!NO_WEB) {
+    loopWebInterface();
+  }
   loopRelays();
   loopBuzzerState();
 }

@@ -1,100 +1,304 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html>
+<html lang="en">
     <head>
-        <meta charset="utf-8">
-        <title>
-            Open Glider v1.0	
-        </title>
         <style>
-        	#redbar {
-        		color: #fff;
-        		background-color: #f00;
-        		width: 500px;
-        		height: 30px;
-        	}
-        	#greenbar {
-        		color: #fff;
-        		background-color: #0f0;
-        		width: 500px;
-        		height: 30px;
-        	}
-        	#bluebar {
-        		color: #fff;
-        		background-color: #00f;
-        		width: 500px;
-        		height: 30px;
-        	}        	        	
+body { 
+	font-size: 1.05em;
+	line-height: 1.25em;
+	font-family: Helvetica Neue, Helvetica, Arial;
+	background: #def3f6;
+	color: #555;
+}
+
+header {
+	background: #def3f6;
+	width: 100%;
+	height: 140px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	border-bottom: 4px solid #4C9CF1;
+	z-index: 100;
+}
+
+.connection svg {
+  display:inline;
+}
+
+label {
+  font-weight: bold;
+  font-size: 1.6vw;  
+}
+
+.deployButtons{
+    width: 100%;
+    float: left;
+    border: solid 1px blue;
+    text-align: center;
+}
+.deployButtons button{
+    display: inline-block;
+}
+.pumpButtons{
+    width: 100%;
+    float: left;
+    border: solid 1px blue;
+    text-align: center;
+}
+.pumpButtons button{
+    display: inline-block;
+}
+.onoffswitch {
+  width: 60%; height: 60%;
+}
+
+.deployONSwitch {
+	position:absolute;
+	visibility:hidden;
+	opacity:0;
+}
+input[type=checkbox] + label {
+  color: #ccc;
+  font-style: italic;
+} 
+input[type=checkbox]:checked + label {
+  color: #f00;
+  font-style: normal;
+}
+.deployONSwitchlabel {
+	float: left;
+	background-color: #064273; /*  */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  width: 40%; height: 60%;
+}
+
+.deployOFFSwitch {
+  position:absolute;
+	visibility:hidden;
+	opacity:0;
+}
+.deployOFFSwitchlabel {
+	float: right;
+	background-color: #064273; /*  */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  width: 40%; height: 60%;
+}
+.pumpINSwitch {
+	position:absolute;
+  visibility:hidden;
+  opacity:0;
+}
+.pumpINSwitchlabel {
+  float: left;
+  background-color: #064273; /*  */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  width: 40%; height: 60%;
+}
+.pumpOUTSwitch {
+	position:absolute;
+  visibility:hidden;
+  opacity:0;
+}
+.pumpOUTSwitchlabel {
+  float: center;
+  background-color: #064273; /*  */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  width: 40%; height: 60%;
+}
+.pumpOFFSwitch {
+	position:absolute;
+  visibility:hidden;
+  opacity:0;
+}
+.pumpOFFSwitchlabel {
+  float: center;
+  background-color: #064273; /*  */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  width: 40%; height: 60%;
+}
+.servermessages {
+	font-size: 24px;
+}
+.button {
+	display: inline-block;
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.switchlabel {
+  display: block;
+  height: 100%;
+  margin: 0px;
+  cursor: not-allowed;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+section {
+
+	margin: 80px auto 40px;
+	max-width: 980px;
+	position: relative;
+	padding: 20px
+
+}
+
+h1 {
+display: inline-block;
+  vertical-align: middle;
+	font-size: 2em;
+	color: #2262AD;
+	line-height: 1.15em;
+	margin: 20px 0 ;
+
+}
+        	  	        	
         </style>
 
-		<script language = "javascript"type = "text/javascript">
-			var wsUri = "ws://192.168.4.1:80/";
-			var output;
-			function init() {
-			    testWebSocket();
-			}
-			
-			function testWebSocket() {
-			    websocket = new WebSocket(wsUri);
-			    websocket.onopen = function(evt) {
-			        console.log("CONNECTED");
-			    };
-			    websocket.onclose = function(evt) {
-			        console.log("DISCONNECTED");
-			    };
-			    websocket.onmessage = function(evt) {
-			    	var pin = evt.data.charAt(1);
-			    	var element;
-
-			    	if (pin == 1) {
-			    		element = document.getElementById("redbar");
-			    		element.style.width = evt.data.substring(2) + "px";
-			    	} else if (pin == 2) {
-			    		element = document.getElementById("greenbar");
-			    		element.style.width = evt.data.substring(2) + "px";			    		
-			    	} else if (pin == 3) {
-			    		element = document.getElementById("bluebar");
-			    		element.style.width = evt.data.substring(2) + "px";			    		
-			    	}
-
-			    };
-			    websocket.onerror = function(evt) {
-			        console.log("ERROR: " + evt.data);
-			    };
-			}
-			
-			function changeRed() {
-				var value = document.getElementById("red").checked;
-				var message = "d8";
-				
-				message += value ? "1" : "0";
-				
-			    console.log("SENT: " + message);
-			    websocket.send(message);
-			}
-			
-			function changeGreen() {
-				var value = document.getElementById("green").checked;
-				var message = "d9";
-				
-				message += value ? "1" : "0";
-				
-			    console.log("SENT: " + message);
-			    websocket.send(message);
-			}			
-			
-			
-			window.addEventListener("load", init, false); 
-        </script>
     </head>
+    <meta charset="utf-8">
+       
     <body>
-        <h2>
+        <title>
             Open Glider v1.0
-        </h2>
-		<input id="red" type="checkbox" onchange="changeRed();">Pin 8</input>
-		<input id="green" type="checkbox" onchange="changeGreen();">Pin 9</input>
+        </title>
+        <header>
+	        <h1>
+           Open Source Glider v1.0
+              <div id="connection" class="connection" style="height:80px;"></div>
+            </div>   
+			</h1>
+		</header>
+		<br><br><br><br><br><br><br>
+	<div class="deployButtons">
+			<input type="checkbox" id="deployONSwitch" value="Deploy ON" name="deployONSwitch" class="deployONSwitch" disabled onchange="talk(name, checked)">
+			<label for="deployONSwitch" id="deployONSwitchlabel" class="deployONSwitchlabel">Deploy ON</label>
 
-		<div id="redbar">Pin 1</div>
-		<div id="greenbar">Pin 2</div>
-		<div id="bluebar">Pin 3</div>
+			<input type="checkbox" id="deployOFFSwitch" value="Deploy OFF" name="deployOFFSwitch" class="deployOFFSwitch" disabled onchange="talk(name, checked)">
+			<label for="deployOFFSwitch" id="deployOFFSwitchlabel" class="deployOFFSwitchlabel">Deploy OFF</label>
+	</div>
+	<br><br><br>
+	<div class="pumpButtons">
+			<input type="checkbox" id="pumpINSwitch" value="Pump IN" name="pumpINSwitch" class="pumpINSwitch" disabled onchange="talk(name, checked)">
+      <label for="pumpINSwitch" id="pumpINSwitchlabel" class="pumpINSwitchlabel">Pump IN</label>
+			<input type="checkbox" id="pumpOUTSwitch" value="Pump OUT" name="pumpOUTSwitch" class="pumpOUTSwitch" disabled onchange="talk(name, checked)">
+      <label for="pumpOUTSwitch" id="pumpOUTSwitchlabel" class="pumpOUTSwitchlabel">Pump OUT</label>
+			<input type="checkbox" id="pumpOFFSwitch" value="Pump OFF" name="pumpOFFSwitch" class="pumpOFFSwitch" disabled onchange="talk(name, checked)">
+      <label for="pumpOFFSwitch" id="pumpOFFSwitchlabel" class="pumpOFFSwitchlabel">Pump OFF</label>
+	</div>
+	<br><br><br><br>
+	<div class="textFromGlider" align="center">
+		<textarea name="servermessages" id="servermessages" class="servermessages" rows="30" cols="73" style="width:95%; height:40%;" readonly></textarea>
+	</div>
     </body>
+    <script type="text/javascript">
+    	<!--var server = "http://" + window.location.hostname;-->
+    	var server = "http://" + "192.168.4.1";
+		<!--const port = window.location.port;-->
+		const port = 80;
+		if (port != "") {
+		  server += ":" + port;
+		}
+		server += "/";
+    	document.getElementById("connection").innerHTML = '<p style="color:#FFA500;"><svg fill="none" version="1.1" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12 17.435c-0.9281 0-1.68 0.7548-1.68 1.6811 0 0.9262 0.7519 1.6776 1.68 1.6776 0.9274 0 1.68-0.7514 1.68-1.6776 0-0.9263-0.7526-1.6811-1.68-1.6811zm11.744-7.9502c-2.9324-3.4845-7.2128-5.4847-11.743-5.4847-4.5306 0-8.8119 2.0002-11.744 5.4847-0.38904 0.46375-0.32785 1.1548 0.13607 1.5437 0.20274 0.1716 0.45297 0.2565 0.70228 0.2565 0.31416 0 0.62466-0.1315 0.83836-0.388 2.5151-2.9924 6.1827-4.7078 10.068-4.7078 3.8813 0 7.5516 1.7153 10.067 4.7042 0.2137 0.2601 0.5242 0.3916 0.8384 0.3916 0.2493 0 0.4995-0.0849 0.7032-0.2565 0.463-0.3889 0.5242-1.08 0.1351-1.5437zm-11.743-1.1019c-3.2356 0-6.2932 1.4259-8.3872 3.9154-0.38904 0.4638-0.33151 1.1548 0.13242 1.5437 0.20639 0.1716 0.45662 0.2565 0.70594 0.2565 0.3105 0 0.62101-0.1314 0.83836-0.3879 1.6767-1.9938 4.1206-3.1386 6.7105-3.1386 2.59 0 5.0329 1.1448 6.7096 3.1386 0.2183 0.2565 0.5279 0.3879 0.8384 0.3879 0.2502 0 0.4995-0.0812 0.7068-0.2565 0.464-0.3889 0.5242-1.0799 0.1315-1.5437-2.094-2.4894-5.1507-3.9154-8.3863-3.9154zm0 4.3828c-1.9443 0-3.7781 0.8554-5.0338 2.3498-0.38904 0.4601-0.32785 1.1512 0.13516 1.5401 0.20366 0.1752 0.45297 0.2574 0.7032 0.2574 0.31416 0 0.62375-0.1324 0.84201-0.3889 0.83471-0.9987 2.0584-1.5693 3.3534-1.5693s2.5178 0.5706 3.3525 1.5693c0.2183 0.2565 0.5288 0.3889 0.842 0.3889 0.2503 0 0.4996-0.0822 0.7032-0.2574 0.464-0.3889 0.5242-1.08 0.1352-1.5401-1.2557-1.4944-3.0886-2.3498-5.0329-2.3498z" clip-rule="evenodd" fill="#FFA500" fill-rule="evenodd"><animate attributeName="fill-opacity" attributeType="XML" dur="0.2s" repeatCount="indefinite" values="1;0"/></path></svg> Connecting ...</p>';
+
+    	const evtSource = new EventSource(server);
+  	evtSource.onopen = function(m) {
+  		document.getElementById("connection").innerHTML = '<p style="color:#00A45B;"><svg fill="none" version="1.1" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12 17.435c-0.9281 0-1.68 0.7548-1.68 1.6811 0 0.9262 0.7519 1.6776 1.68 1.6776 0.9274 0 1.68-0.7514 1.68-1.6776 0-0.9263-0.7526-1.6811-1.68-1.6811zm11.744-7.9502c-2.9324-3.4845-7.2128-5.4847-11.743-5.4847-4.5306 0-8.8119 2.0002-11.744 5.4847-0.38904 0.46375-0.32785 1.1548 0.13607 1.5437 0.20274 0.1716 0.45297 0.2565 0.70228 0.2565 0.31416 0 0.62466-0.1315 0.83836-0.388 2.5151-2.9924 6.1827-4.7078 10.068-4.7078 3.8813 0 7.5516 1.7153 10.067 4.7042 0.2137 0.2601 0.5242 0.3916 0.8384 0.3916 0.2493 0 0.4995-0.0849 0.7032-0.2565 0.463-0.3889 0.5242-1.08 0.1351-1.5437zm-11.743-1.1019c-3.2356 0-6.2932 1.4259-8.3872 3.9154-0.38904 0.4638-0.33151 1.1548 0.13242 1.5437 0.20639 0.1716 0.45662 0.2565 0.70594 0.2565 0.3105 0 0.62101-0.1314 0.83836-0.3879 1.6767-1.9938 4.1206-3.1386 6.7105-3.1386 2.59 0 5.0329 1.1448 6.7096 3.1386 0.2183 0.2565 0.5279 0.3879 0.8384 0.3879 0.2502 0 0.4995-0.0812 0.7068-0.2565 0.464-0.3889 0.5242-1.0799 0.1315-1.5437-2.094-2.4894-5.1507-3.9154-8.3863-3.9154zm0 4.3828c-1.9443 0-3.7781 0.8554-5.0338 2.3498-0.38904 0.4601-0.32785 1.1512 0.13516 1.5401 0.20366 0.1752 0.45297 0.2574 0.7032 0.2574 0.31416 0 0.62375-0.1324 0.84201-0.3889 0.83471-0.9987 2.0584-1.5693 3.3534-1.5693s2.5178 0.5706 3.3525 1.5693c0.2183 0.2565 0.5288 0.3889 0.842 0.3889 0.2503 0 0.4996-0.0822 0.7032-0.2574 0.464-0.3889 0.5242-1.08 0.1352-1.5401-1.2557-1.4944-3.0886-2.3498-5.0329-2.3498z" clip-rule="evenodd" fill="#00A45B" fill-rule="evenodd"/></svg> Connected</p>';
+  		document.getElementById("deployONSwitch").disabled = false;
+  		document.getElementById("deployOFFSwitch").disabled = false;
+  		document.getElementById("pumpINSwitch").disabled = false;
+    	document.getElementById("pumpOUTSwitch").disabled = false;
+    	document.getElementById("pumpOFFSwitch").disabled = false;
+	}
+	evtSource.onerror = function(m) {
+    document.getElementById("connection").innerHTML = '<p style="color:#F75535;"><svg fill="none" version="1.1" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m12 17.435c-0.9281 0-1.68 0.7548-1.68 1.6811 0 0.9262 0.7519 1.6776 1.68 1.6776 0.9274 0 1.68-0.7514 1.68-1.6776 0-0.9263-0.7526-1.6811-1.68-1.6811zm11.744-7.9502c-2.9324-3.4845-7.2128-5.4847-11.743-5.4847-4.5306 0-8.8119 2.0002-11.744 5.4847-0.38904 0.46375-0.32785 1.1548 0.13607 1.5437 0.20274 0.1716 0.45297 0.2565 0.70228 0.2565 0.31416 0 0.62466-0.1315 0.83836-0.388 2.5151-2.9924 6.1827-4.7078 10.068-4.7078 3.8813 0 7.5516 1.7153 10.067 4.7042 0.2137 0.2601 0.5242 0.3916 0.8384 0.3916 0.2493 0 0.4995-0.0849 0.7032-0.2565 0.463-0.3889 0.5242-1.08 0.1351-1.5437zm-11.743-1.1019c-3.2356 0-6.2932 1.4259-8.3872 3.9154-0.38904 0.4638-0.33151 1.1548 0.13242 1.5437 0.20639 0.1716 0.45662 0.2565 0.70594 0.2565 0.3105 0 0.62101-0.1314 0.83836-0.3879 1.6767-1.9938 4.1206-3.1386 6.7105-3.1386 2.59 0 5.0329 1.1448 6.7096 3.1386 0.2183 0.2565 0.5279 0.3879 0.8384 0.3879 0.2502 0 0.4995-0.0812 0.7068-0.2565 0.464-0.3889 0.5242-1.0799 0.1315-1.5437-2.094-2.4894-5.1507-3.9154-8.3863-3.9154zm0 4.3828c-1.9443 0-3.7781 0.8554-5.0338 2.3498-0.38904 0.4601-0.32785 1.1512 0.13516 1.5401 0.20366 0.1752 0.45297 0.2574 0.7032 0.2574 0.31416 0 0.62375-0.1324 0.84201-0.3889 0.83471-0.9987 2.0584-1.5693 3.3534-1.5693s2.5178 0.5706 3.3525 1.5693c0.2183 0.2565 0.5288 0.3889 0.842 0.3889 0.2503 0 0.4996-0.0822 0.7032-0.2574 0.464-0.3889 0.5242-1.08 0.1352-1.5401-1.2557-1.4944-3.0886-2.3498-5.0329-2.3498z" clip-rule="evenodd" fill="#F75535" fill-rule="evenodd"/></svg> Disconnected</p>';
+    evtSource.close();
+    document.getElementById("deployONSwitch").disabled = true;
+    document.getElementById("deployOFFSwitch").disabled = true;
+    document.getElementById("pumpINSwitch").disabled = true;
+    document.getElementById("pumpOUTSwitch").disabled = true;
+    document.getElementById("pumpOFFSwitch").disabled = true;
+    }
+	evtSource.onmessage = function(m) {
+	  document.getElementById("servermessages").innerHTML += m.data + "\n";
+	  document.getElementById("servermessages").scrollTop = document.getElementById("servermessages").scrollHeight;
+	}
+	evtSource.addEventListener("deployONSwitchListener", function(m) {
+  		document.getElementById("deployONSwitch").checked = (m.data == "true");
+  		document.getElementById("deployONSwitch").onchange();
+	});
+	evtSource.addEventListener("deployOFFSwitchListener", function(m) {
+  		document.getElementById("deployOFFSwitch").checked = (m.data == "true");
+  		document.getElementById("deployOFFSwitch").onchange();
+	});
+	evtSource.addEventListener("pumpINSwitchListener", function(m) {
+  		document.getElementById("pumpINSwitch").checked = (m.data == "true");
+  		//document.getElementById("pumpINSwitch").onchange();
+	});
+	evtSource.addEventListener("pumpOUTSwitchListener", function(m) {
+  		document.getElementById("pumpOUTSwitch").checked = (m.data == "true");
+  		//document.getElementById("pumpOUTSwitch").onchange();
+	});
+	evtSource.addEventListener("pumpOFFSwitchListener", function(m) {
+  		document.getElementById("pumpOFFSwitch").checked = (m.data == "true");
+  		//document.getElementById("pumpOFFSwitch").onchange();
+	});
+
+
+	function talk(name, value) {
+	  var xhr = new XMLHttpRequest();
+	  xhr.open("HEAD", server + "?" + name + "=" + value, false);
+	  try {
+	    xhr.send(null);
+	  } catch (e) {
+	    evtSource.onerror(e);
+	  }
+	}
+	window.addEventListener("beforeunload", closeEventSource, false);
+	function closeEventSource() {
+	  evtSource.close();
+	}
+
+	window.addEventListener("unload", closeConnections, false);
+	function closeConnections() {
+	  navigator.sendBeacon(server, "");
+	}
+    </script>
 </html>

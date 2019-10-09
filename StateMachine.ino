@@ -1,6 +1,6 @@
 
 void deployGlider(){
-  if(glider.state == ON_SURFACE_WAITING_FOR_COMMAND){
+  if(glider.state == ON_SURFACE_WAITING_FOR_COMMAND || glider.state == POWER_ON){
     changeGliderState(ON_SURFACE);
   }
 }
@@ -9,17 +9,35 @@ void resetGlider(){
   changeGliderState(ON_SURFACE_WAITING_FOR_COMMAND);
 }
 
+void changeDeployState(DeployState newDeployState) {
+  if(newDeployState == DEPLOY_OFF){
+      logln("DEPLOY_OFF");
+      logToWebClientSSE_RAW("event: deployONSwitchListener\ndata: false\n");
+      logToWebClientSSE_RAW("event: deployOFFSwitchListener\ndata: true\n");
+      glider.deployState = DEPLOY_OFF;
+      glider.state == ON_SURFACE_WAITING_FOR_COMMAND;
+  } else if(newDeployState == DEPLOYED){
+      logln("DEPLOY_ON");
+      logToWebClientSSE_RAW("event: deployONSwitchListener\ndata: true\n");
+      logToWebClientSSE_RAW("event: deployOFFSwitchListener\ndata: false\n");
+      logToWebClientSSE_RAW("event: pumpINSwitchListener\ndata: true\n");
+      glider.deployState = DEPLOYED;
+  }
+  
+}
 void changeGliderState(GliderState newGliderState) {
   if (newGliderState == POWER_ON) {
     
   } else if (newGliderState == ON_SURFACE) {
-    Serial.println("glider.state switching to ON_SURFACE");
-    allData = allData + "\nON_SURFACE" + " \r\n";
-
+    logln("ON_SURFACE");
+    logToWebClientSSE("ON_SURFACE");
+    //allData = allData + "\nON_SURFACE" + " \r\n";
+    changeDeployState(DEPLOYED);
     if (glider.state == SURFACING) {          //glider is coming up to the surface.. turn pump off..
       //reached the surface from the bottom
       glider.stateTimer = currentMillis;
       glider.diveCounter++;
+      beepTwice();
     }
     else if (glider.state == POWER_ON || glider.state == ON_SURFACE_WAITING_FOR_COMMAND) {
       //initial turn on!
@@ -28,26 +46,33 @@ void changeGliderState(GliderState newGliderState) {
     }
   }
   else if (newGliderState == ON_SURFACE_WAITING_FOR_COMMAND) {
-    Serial.println("glider.state switching to ON_SURFACE_WAITING_FOR_COMMAND");
-          allData = allData + "ON_SURFACE_WAITING_FOR_COMMAND" + " \r\n";
-
+    logln("ON_SURFACE_WAITING_FOR_COMMAND");
+    logToWebClientSSE("ON_SURFACE_WAITING_FOR_COMMAND");
+          //allData = allData + "ON_SURFACE_WAITING_FOR_COMMAND" + " \r\n";
+    changeDeployState(DEPLOY_OFF);
   }
   else if (newGliderState == DIVING) {                      //glider is beginning a dive
-    Serial.println("glider.state switching to DIVING");
-    allData = allData + "DIVING" + " \r\n";
+    logln("DIVING");
+    logToWebClientSSE("DIVING");
+    beepTwice();
+    //allData = allData + "DIVING" + " \r\n";
     glider.stateTimer = currentMillis;
     changePumpState(PUMP_ON_IN_INIT);                       //pump water in to dive
     setBuzzerPeriod(def_buzz, def_buzz, 3);
   }
   else if (newGliderState == ON_BOTTOM) {
-    allData = allData + "ON_BOTTOM" + " \r\n";
-    Serial.println("glider.state switching to ON_BOTTOM");
+    //allData = allData + "ON_BOTTOM" + " \r\n";
+    logln("ON_BOTTOM");
+    beepTwice();
+    logToWebClientSSE("ON_BOTTOM");
     glider.stateTimer = currentMillis;
     setBuzzerPeriod(def_buzz, def_buzz, 4);
   }
   else if (newGliderState == SURFACING) {
-    allData = allData + "SURFACING" + " \r\n";
-    Serial.println("glider.state switching to SURFACING");
+    //allData = allData + "SURFACING" + " \r\n";
+    logln("SURFACING");
+    beepTwice();
+    logToWebClientSSE("SURFACING");
     glider.stateTimer = currentMillis;
     changePumpState(PUMP_ON_OUT_INIT);    //pump water out to surface
     setBuzzerPeriod(def_buzz, def_buzz, 5);
@@ -61,7 +86,9 @@ void loopGliderState() {
     //for now we will assume that power on only happens on the surface.. later check to see if we are actually on the surface
     if (currentMillis - glider.stateTimer > power_on_time) {
       if(AUTOSTART){
-        changeGliderState(ON_SURFACE);      
+        changeGliderState(ON_SURFACE); 
+        beepTwice();
+        beepTwice();     
       }
       else {
         changeGliderState(ON_SURFACE_WAITING_FOR_COMMAND);
@@ -98,12 +125,14 @@ void loopGliderState() {
 
 void changePumpState(PumpState newPumpState) {
   if (newPumpState == PUMP_OFF) {
-    Serial.println("glider.pumpState switching to PUMP_OFF");
-    allData = allData + "PUMP_OFF" + " \r\n";
+    logln("PUMP_OFF");
+    logToWebClientSSE("PUMP_OFF");
+    //allData = allData + "PUMP_OFF" + " \r\n";
   }
   else if (newPumpState == PUMP_OFF_INIT) {
-    Serial.println("glider.pumpState switching to PUMP_OFF_INIT");
-    allData = allData + "PUMP_OFF_INIT" + " \r\n";
+    logln("PUMP_OFF_INIT");
+    logToWebClientSSE("PUMP_OFF_INIT");
+    //allData = allData + "PUMP_OFF_INIT" + " \r\n";
     glider.pumpTimer = currentMillis;
     changeValveState(VALVE_CLOSE_INIT);
     pumpOff();
@@ -111,27 +140,31 @@ void changePumpState(PumpState newPumpState) {
   }
   else if (newPumpState == PUMP_ON_IN_INIT) {
     glider.pumpTimer = currentMillis;
-    allData = allData + "PUMP_ON_IN_INIT" + " \r\n";
-    Serial.println("glider.pumpState is in PUMP_ON_IN_INIT and is DIVING (this is good)");
+    //allData = allData + "PUMP_ON_IN_INIT" + " \r\n";
+    logln("PUMP_ON_IN_INIT and is DIVING");
+    logToWebClientSSE("PUMP_ON_IN_INIT and is DIVING");
     changeValveState(VALVE_OPEN_INIT);
     pumpInInit();
   }
   else if (newPumpState == PUMP_ON_IN) {
-    allData = allData + "PUMP_ON_IN" + " \r\n";
-    Serial.println("glider.pumpState switching to PUMP_ON_IN");
+    //allData = allData + "PUMP_ON_IN" + " \r\n";
+    logln("glider.pumpState PUMP_ON_IN");
+    logToWebClientSSE("PUMP_ON_IN");
     pumpIn();
   }
   else if (newPumpState == PUMP_ON_OUT_INIT) {
-    allData = allData + "PUMP_ON_OUT_INIT" + " \r\n";
-    Serial.println("glider.pumpState switching to PUMP_ON_OUT_INIT");
+    //allData = allData + "PUMP_ON_OUT_INIT" + " \r\n";
+    logln("glider.pumpState PUMP_ON_OUT_INIT");
+    logToWebClientSSE("PUMP_ON_OUT_INIT");
     glider.pumpTimer = currentMillis;
     changeValveState(VALVE_OPEN_INIT);
     pumpOutInit();
 
   }
   else if (newPumpState == PUMP_ON_OUT) {
-    allData = allData + "PUMP_ON_OUT" + " \r\n";
-    Serial.println("glider.pumpState switching to PUMP_ON_OUT");
+    //allData = allData + "PUMP_ON_OUT" + " \r\n";
+    logln("glider.pumpState PUMP_ON_OUT");
+    logToWebClientSSE("PUMP_ON_OUT");
     pumpOut();
   }
 
@@ -186,23 +219,27 @@ void loopPumpState() {
 
 void changeValveState(ValveState newValveState) {
   if (newValveState == VALVE_OPEN) {
-    allData = allData + "VALVE_OPEN\n";
+    logToWebClientSSE("VALVE_OPEN");
+    //allData = allData + "VALVE_OPEN\n";
     valveOpenDone();
   }
   else if (newValveState == VALVE_OPEN_INIT) {
-    allData = allData + "VALVE_OPEN_INIT"+ " \r\n";
+    //allData = allData + "VALVE_OPEN_INIT"+ " \r\n";
+    logToWebClientSSE("VALVE_OPEN_INIT");
     glider.valveBuzzerTimer = currentMillis;
     glider.valveTimer = currentMillis;
     valveOpenInit();
   }
   else if (newValveState == VALVE_CLOSE_INIT) {
-    allData = allData + "VALVE_CLOSE_INIT"+ " \r\n";
+    //allData = allData + "VALVE_CLOSE_INIT"+ " \r\n";
+    logToWebClientSSE("VALVE_OPEN_INIT");
     glider.valveBuzzerTimer = currentMillis;
     glider.valveTimer = currentMillis;
     valveCloseInit();
   }
   else if (newValveState == VALVE_CLOSED) {
-    allData = allData + "VALVE_CLOSED" + " \r\n";
+    //allData = allData + "VALVE_CLOSED" + " \r\n";
+    logToWebClientSSE("VALVE_CLOSED");
     valveCloseDone();
   }
   glider.valveState = newValveState;

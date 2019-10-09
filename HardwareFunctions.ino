@@ -5,26 +5,27 @@ void setupBuzzer() {
 }
 
 void pumpOutInit() {
-  Serial.println("pumpOutInit()");
+  logln("pumpOutInit()");
   //setup direction
 
 
 }
 
 void pumpInInit() {
-  Serial.println("pumpInInit()");
+  logln("pumpInInit");
   //setup direction
 }
 
 void pumpOffInit() {
-  Serial.println("pumpOffInit()");
+  logln("pumpOffInit");
   digitalWrite(pumpPlusRelay, relayOFF);    //both in default state is one direction
   digitalWrite(pumpMinusRelay, relayOFF);
   digitalWrite(pumpPowerRelay, relayOFF);
+  
 }
 
 void pumpOut() {
-  Serial.println("pumpOut()");
+  logln("pumpOut");
   digitalWrite(pumpPlusRelay, relayOFF);    //both in default state is one direction
   digitalWrite(pumpMinusRelay, relayOFF);
   delay(5);
@@ -32,7 +33,7 @@ void pumpOut() {
 }
 
 void pumpIn() {
-  Serial.println("pumpIn()");
+  logln("pumpIn");
   digitalWrite(pumpPlusRelay, relayON);    //both in default state is one direction
   digitalWrite(pumpMinusRelay, relayON);
   delay(5);
@@ -40,59 +41,70 @@ void pumpIn() {
 }
 
 void pumpOff() {
-  Serial.println("pumpOff()");
+  logln("pumpOff");
   digitalWrite(pumpPlusRelay, relayOFF);    //both in default state is one direction
   digitalWrite(pumpMinusRelay, relayOFF);
   digitalWrite(pumpPowerRelay, relayOFF);
 }
 
 void valveOpenInit() {
-  Serial.println("valveOpenInit()");
-  digitalWrite(valvePlusRelay, relayON);    //both in default state is one direction
-  digitalWrite(valveMinusRelay, relayON);
-  delay(5);
-  digitalWrite(valvePowerRelay, relayON);
-
+  if (!NO_VALVE) {
+    logln("valveOpenInit");
+    digitalWrite(valvePlusRelay, relayON);    //both in default state is one direction
+    digitalWrite(valveMinusRelay, relayON);
+    delay(5);
+    digitalWrite(valvePowerRelay, relayON);
+  }
 }
 void valveCloseInit() {
-  Serial.println("valveCloseInit()");
-  digitalWrite(valvePlusRelay, relayOFF);    //both in default state is one direction
-  digitalWrite(valveMinusRelay, relayOFF);
-  delay(5);
-  digitalWrite(valvePowerRelay, relayON);
+  if (!NO_VALVE) {
+    logln("valveCloseInit");
+    digitalWrite(valvePlusRelay, relayOFF);    //both in default state is one direction
+    digitalWrite(valveMinusRelay, relayOFF);
+    delay(1);
+    digitalWrite(valvePowerRelay, relayON);
+  }
 }
 void valveOpenDone() {
-  Serial.println("valveOpenDone()");
-  digitalWrite(valvePlusRelay, relayOFF);    //both in default state is one direction
-  digitalWrite(valveMinusRelay, relayOFF);
-  digitalWrite(valvePowerRelay, relayOFF);
+  if (!NO_VALVE) {
+    logln("valveOpenDone()");
+    digitalWrite(valvePlusRelay, relayOFF);    //both in default state is one direction
+    digitalWrite(valveMinusRelay, relayOFF);
+    digitalWrite(valvePowerRelay, relayOFF);
+  }
 }
 void valveCloseDone() {
-  Serial.println("valveCloseDone()");
-  digitalWrite(valvePlusRelay, relayOFF);    //both in default state is one direction
-  digitalWrite(valveMinusRelay, relayOFF);
-  digitalWrite(valvePowerRelay, relayOFF);
+  if (!NO_VALVE) {
+    logln("valveCloseDone()");
+    digitalWrite(valvePlusRelay, relayOFF);    //both in default state is one direction
+    digitalWrite(valveMinusRelay, relayOFF);
+    digitalWrite(valvePowerRelay, relayOFF);
+  }
 }
-
+void beepTwice() {
+  buzz(buzzerOnPin, 3500, 200);
+      delay(80);
+      buzz(buzzerOnPin, 3500, 200);
+}
 void turnBuzzerOff() {
-  digitalWrite(buzzerOnPin, HIGH);
+  //digitalWrite(buzzerOnPin, HIGH);
   //Serial.println("buzzer off");
 }
 void turnBuzzerOn() {
-  
+
   //Serial.println("buzzer on");
 }
 
-void buzzerStateChange(int newState){
-  if(glider.buzzer.buzzerState == BUZZER_HIGH){
-    digitalWrite(LED_BUILTIN, HIGH); 
-  } else if(glider.buzzer.buzzerState == BUZZER_LOW){
-    digitalWrite(LED_BUILTIN, LOW); 
+void buzzerStateChange(int newState) {
+  if (glider.buzzer.buzzerState == BUZZER_HIGH) {
+    //digitalWrite(LED_BUILTIN, HIGH);
+  } else if (glider.buzzer.buzzerState == BUZZER_LOW) {
+    //digitalWrite(LED_BUILTIN, LOW);
   }
-  else if(glider.buzzer.buzzerState == BUZZER_OFF){
-    digitalWrite(LED_BUILTIN, LOW); 
+  else if (glider.buzzer.buzzerState == BUZZER_OFF) {
+    digitalWrite(LED_BUILTIN, LOW);
   }
-  
+
 }
 
 
