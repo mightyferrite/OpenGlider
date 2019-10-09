@@ -8,10 +8,11 @@ to change states based on actual water depth by adding an external water sensor.
 This runs on an Arduino Nano IOT 33 with built in wifi.  It is a new board and the libraries do not support websockets nicely yet, so I used SSE with much thanks to Oscar from his project https://github.com/ocrdu/arduino-webinterface-sse
 
 The pinouts used are:
+
 SD CARD (SCK)	1	D13	Digital	GPIO
-	            2	#ERROR!	Power Out	Internally generated power output to external devices
-	            3	AREF	Analog	Analog Reference; can be used as GPIO
-	            4	A0/DAC0	Analog	ADC in/DAC out; can be used as GPIO
+		2	#ERROR!	Power Out	Internally generated power output to external devices
+		3	AREF	Analog	Analog Reference; can be used as GPIO
+		4	A0/DAC0	Analog	ADC in/DAC out; can be used as GPIO
 Vlve Neg RLY	5	A1	Analog	ADC in; can be used as GPIO
 	            6	A2	Analog	ADC in; can be used as GPIO
 	            7	A3	Analog	ADC in; can be used as GPIO
