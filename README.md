@@ -1,5 +1,5 @@
 # OpenGlider
-##Arduino based glider control software
+Arduino based glider control software
 
 This is Arduino code running a home built underwater glider.  It is currently functional and working however
 there are some rough spots.  The glider states change based on a timer - the next phase of this will be 
